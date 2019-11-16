@@ -1,10 +1,10 @@
 name:                token-search
 version:             0.1.0.0
-github:              "githubuser/token-search"
-license:             BSD3
-author:              "Author name here"
-maintainer:          "example@example.com"
-copyright:           "2019 Author name here"
+github:              "joshuaclayton/token-search"
+license:             MIT
+author:              "Josh Clayton"
+maintainer:          "sayhi@joshuaclayton.me"
+copyright:           "2019 Josh Clayton"
 
 extra-source-files:
 - README.md
