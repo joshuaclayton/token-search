@@ -60,16 +60,6 @@ walkedTerminalResult node =
         Ended _ -> []
         Walked base node -> [base | isTerminal node]
 
-walkedResults :: WalkedNode -> [String]
-walkedResults node =
-    case node of
-        Unwalked _ -> []
-        Ended _ -> []
-        Walked base node ->
-            let current = [base | isTerminal node]
-                children = catMaybes $ thing2 (L.init base) node
-             in current ++ children
-
 thing :: String -> Node -> Maybe String
 thing accumulated node =
     case node of
