@@ -1,12 +1,13 @@
 module Trie
     ( buildTrieWithTokens
-    , nodeChar
-    , nodeChildren
     , isTerminal
-    , Trie(..)
-    , Node(..)
+    , findNodeFromTrie
+    , findNodeFromChildren
+    , Trie
+    , Node
     ) where
 
+import qualified Data.List as L
 import qualified Data.Map as Map
 import Data.Maybe (catMaybes)
 import qualified Data.Text as T
@@ -28,6 +29,16 @@ buildTrieWithTokens = finalize . foldl (flip add) buildTrie
 
 finalize :: Trie -> Trie
 finalize (Root nodes) = Root $ recursiveMergeNodes nodes
+
+findNodeFromTrie :: Trie -> Char -> Maybe Node
+findNodeFromTrie (Root nodes) char = L.find (\n -> nodeChar n == char) nodes
+
+findNodeFromChildren :: Node -> Char -> Maybe Node
+findNodeFromChildren node char =
+    L.find (\n -> nodeChar n == char) $ nodeChildren node
+
+firstNodeFromTrie :: Trie -> Char -> Maybe Node
+firstNodeFromTrie (Root nodes) char = L.find (\n -> nodeChar n == char) nodes
 
 isTerminal :: Node -> Bool
 isTerminal node =

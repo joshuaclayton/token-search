@@ -44,12 +44,12 @@ walk :: Char -> WalkedNode -> WalkedNode
 walk char node =
     case node of
         Ended x -> Ended x
-        Unwalked (Root nodes) ->
-            case L.find (\n -> nodeChar n == char) nodes of
+        Unwalked trie ->
+            case findNodeFromTrie trie char of
                 Nothing -> Ended [char]
                 Just node' -> Walked [char] node'
         Walked string node' ->
-            case L.find (\n -> nodeChar n == char) (nodeChildren node') of
+            case findNodeFromChildren node' char of
                 Nothing -> Ended $ string ++ [char]
                 Just node'' -> Walked (string ++ [char]) node''
 
@@ -59,17 +59,3 @@ walkedTerminalResult node =
         Unwalked _ -> []
         Ended _ -> []
         Walked base node -> [base | isTerminal node]
-
-thing :: String -> Node -> Maybe String
-thing accumulated node =
-    case node of
-        Terminal c _ -> Just $ accumulated ++ [c]
-        _ -> Nothing
-
-thing2 :: String -> Node -> [Maybe String]
-thing2 acc node = results
-  where
-    acc' = acc ++ [nodeChar node]
-    children = nodeChildren node
-    results =
-        concatMap (\child -> thing acc' child : thing2 acc' child) children
