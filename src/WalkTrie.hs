@@ -3,20 +3,18 @@ module WalkTrie
     , aggregateResults
     ) where
 
-import Control.Arrow ((&&&))
-import Data.Function (on)
 import qualified Data.List as L
 import qualified Data.Map as Map
-import Data.Maybe (catMaybes)
+import Data.Maybe (catMaybes, mapMaybe)
 import Trie
+import Util
 
 aggregateResults :: [Map.Map String Int] -> Map.Map String Int
 aggregateResults = foldl1 (Map.unionWith (+))
 
 advanceStates :: [WalkedNode] -> Char -> ([WalkedNode], [String])
 advanceStates nodes char =
-    ( catMaybes $ map clearNode walkedNodes
-    , concatMap walkedTerminalResult walkedNodes)
+    (mapMaybe clearNode walkedNodes, concatMap walkedTerminalResult walkedNodes)
   where
     walkedNodes = map (walk char) nodes
     clearNode node =
@@ -60,10 +58,7 @@ walkedTerminalResult node =
     case node of
         Unwalked _ -> []
         Ended _ -> []
-        Walked base node ->
-            if isTerminal node
-                then [base]
-                else []
+        Walked base node -> [base | isTerminal node]
 
 walkedResults :: WalkedNode -> [String]
 walkedResults node =
@@ -71,10 +66,7 @@ walkedResults node =
         Unwalked _ -> []
         Ended _ -> []
         Walked base node ->
-            let current =
-                    if isTerminal node
-                        then [base]
-                        else []
+            let current = [base | isTerminal node]
                 children = catMaybes $ thing2 (L.init base) node
              in current ++ children
 
@@ -90,8 +82,4 @@ thing2 acc node = results
     acc' = acc ++ [nodeChar node]
     children = nodeChildren node
     results =
-        concatMap (\child -> [thing acc' child] ++ thing2 acc' child) $ children
-
-groupBy :: Ord b => (a -> b) -> [a] -> [(b, [a])]
-groupBy f =
-    map (f . head &&& id) . L.groupBy ((==) `on` f) . L.sortBy (compare `on` f)
+        concatMap (\child -> thing acc' child : thing2 acc' child) children
