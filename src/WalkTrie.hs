@@ -3,11 +3,9 @@ module WalkTrie
     , aggregateResults
     ) where
 
-import qualified Data.List as L
 import qualified Data.Map as Map
-import Data.Maybe (catMaybes, mapMaybe)
+import Data.Maybe (mapMaybe)
 import Trie
-import Util
 
 aggregateResults :: [Map.Map String Int] -> Map.Map String Int
 aggregateResults = foldl1 (Map.unionWith (+))
@@ -26,9 +24,9 @@ processText :: Trie -> String -> Map.Map String Int
 processText trie body = snd $ foldl f ([], Map.empty) body
   where
     f (state, map') char =
-        let (newState, words) = advanceStates (state ++ [root trie]) char
+        let (newState, words') = advanceStates (state ++ [root trie]) char
             newMap m word = Map.insertWith (+) word 1 m
-         in (newState, foldl newMap map' words)
+         in (newState, foldl newMap map' words')
 
 data WalkedNode
     = Unwalked Trie
@@ -58,4 +56,4 @@ walkedTerminalResult node =
     case node of
         Unwalked _ -> []
         Ended _ -> []
-        Walked base node -> [base | isTerminal node]
+        Walked base node' -> [base | isTerminal node']

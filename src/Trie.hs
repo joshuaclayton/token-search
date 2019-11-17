@@ -8,9 +8,6 @@ module Trie
     ) where
 
 import qualified Data.List as L
-import qualified Data.Map as Map
-import Data.Maybe (catMaybes)
-import qualified Data.Text as T
 import Util
 
 newtype Trie =
@@ -36,9 +33,6 @@ findNodeFromTrie (Root nodes) char = L.find (\n -> nodeChar n == char) nodes
 findNodeFromChildren :: Node -> Char -> Maybe Node
 findNodeFromChildren node char =
     L.find (\n -> nodeChar n == char) $ nodeChildren node
-
-firstNodeFromTrie :: Trie -> Char -> Maybe Node
-firstNodeFromTrie (Root nodes) char = L.find (\n -> nodeChar n == char) nodes
 
 isTerminal :: Node -> Bool
 isTerminal node =

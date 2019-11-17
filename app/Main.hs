@@ -24,10 +24,10 @@ main = do
         mapM
             (\filename -> processWithContext newTrie <$!> readFileBS filename)
             filenames
-    print $
-        Map.fromList $ map go $ groupBy (\(a, b, c) -> a) $ concat allResults
+    print $ Map.fromList $ map go $ groupBy firstFromTriple $ concat allResults
   where
-    prepareForMap (a, b, c) = (b, c)
+    firstFromTriple (a, _, _) = a
+    prepareForMap (_, b, c) = (b, c)
     go (token, xs) = (token, Map.fromList $ map prepareForMap xs)
 
 readFileBS :: String -> IO (String, String)
