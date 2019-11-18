@@ -6,11 +6,10 @@ import Control.Monad ((<$!>))
 import qualified Data.ByteString.Lazy as C
 import Data.Char (chr)
 import qualified Data.List as L
-import qualified Data.Map as Map
+import qualified Data.Map.Strict as Map
 import qualified Data.Text as T
 import System.Process (readProcess)
 import Trie
-import Util
 import WalkTrie
 
 main :: IO ()
@@ -21,14 +20,12 @@ main = do
     print $ length filenames
     let newTrie = buildTrieWithTokens tokens
     allResults <-
+        Map.unions <$>
         mapM
-            (\filename -> processWithContext newTrie <$!> readFileBS filename)
+            (\filename ->
+                 processTextWithFilename newTrie <$!> readFileBS filename)
             filenames
-    print $ Map.fromList $ map go $ groupBy firstFromTriple $ concat allResults
-  where
-    firstFromTriple (a, _, _) = a
-    prepareForMap (_, b, c) = (b, c)
-    go (token, xs) = (token, Map.fromList $ map prepareForMap xs)
+    print $ transformMap allResults
 
 calculateTokens :: IO [String]
 calculateTokens = tokensFromTags <$> readProcess "cat" [".git/tags"] []
@@ -40,10 +37,24 @@ readFileBS :: String -> IO (String, String)
 readFileBS filename =
     (, filename) . map (chr . fromEnum) . C.unpack <$> C.readFile filename
 
-processWithContext :: Trie -> (String, String) -> [(String, String, Int)]
-processWithContext trie (input, filename) =
-    map (\(token, ct) -> (token, filename, ct)) $
-    Map.toList $ processText trie input
+processTextWithFilename ::
+       Trie -> (String, String) -> Map.Map String (Map.Map String Int)
+processTextWithFilename trie (input, filename) =
+    Map.singleton filename $ processText trie input
+
+transformMap ::
+       (Ord a, Ord b) => Map.Map a (Map.Map b Int) -> Map.Map b (Map.Map a Int)
+transformMap = Map.foldlWithKey f Map.empty
+  where
+    f tokenToFilenamesAcc filename =
+        Map.foldlWithKey
+            (\acc token count ->
+                 Map.insertWith
+                     Map.union
+                     token
+                     (Map.singleton filename count)
+                     acc)
+            tokenToFilenamesAcc
 
 tokensFromTags :: String -> [String]
 tokensFromTags = L.nub . tokenLocations
