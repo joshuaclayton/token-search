@@ -3,6 +3,7 @@ module WalkTrie
     , aggregateResults
     ) where
 
+import Control.Arrow ((&&&))
 import qualified Data.Map as Map
 import Data.Maybe (mapMaybe)
 import Trie
@@ -12,13 +13,11 @@ aggregateResults = foldl1 (Map.unionWith (+))
 
 advanceStates :: [WalkedNode] -> Char -> ([WalkedNode], [String])
 advanceStates nodes char =
-    (mapMaybe clearNode walkedNodes, concatMap walkedTerminalResult walkedNodes)
+    mapMaybe clearNode &&& concatMap walkedTerminalResult $ walkedNodes
   where
     walkedNodes = map (walk char) nodes
-    clearNode node =
-        case node of
-            Ended _ -> Nothing
-            a -> Just a
+    clearNode (Ended _) = Nothing
+    clearNode a = Just a
 
 processText :: Trie -> String -> Map.Map String Int
 processText trie body = snd $ foldl f ([], Map.empty) body

@@ -7,83 +7,57 @@ module Trie
     , Node
     ) where
 
-import qualified Data.List as L
-import Util
+import qualified Data.Map as Map
+
+type NodeMap = Map.Map Char Node
 
 newtype Trie =
-    Root [Node]
+    Root NodeMap
     deriving (Show)
 
 data Node
-    = Terminal !Char
-               ![Node]
-    | NonTerminal !Char
-                  ![Node]
+    = Terminal !NodeMap
+    | NonTerminal !NodeMap
     deriving (Show)
 
 buildTrieWithTokens :: [String] -> Trie
-buildTrieWithTokens = finalize . foldl (flip add) buildTrie
-
-finalize :: Trie -> Trie
-finalize (Root nodes) = Root $ recursiveMergeNodes nodes
+buildTrieWithTokens = foldl (flip add) buildTrie
 
 findNodeFromTrie :: Trie -> Char -> Maybe Node
-findNodeFromTrie (Root nodes) char = L.find (\n -> nodeChar n == char) nodes
+findNodeFromTrie (Root nodes) char = Map.lookup char nodes
 
 findNodeFromChildren :: Node -> Char -> Maybe Node
-findNodeFromChildren node char =
-    L.find (\n -> nodeChar n == char) $ nodeChildren node
+findNodeFromChildren node char = Map.lookup char $ nodeChildren node
+
+mergeSameNodes :: Node -> Node -> Node
+mergeSameNodes (NonTerminal xs) (NonTerminal ys) =
+    NonTerminal $ mergeNodeMaps xs ys
+mergeSameNodes x y = Terminal $ mergeNodeMaps (nodeChildren x) (nodeChildren y)
+
+mergeNodeMaps :: NodeMap -> NodeMap -> NodeMap
+mergeNodeMaps = Map.unionWith mergeSameNodes
 
 isTerminal :: Node -> Bool
-isTerminal node =
-    case node of
-        Terminal _ _ -> True
-        NonTerminal _ _ -> False
+isTerminal (Terminal _) = True
+isTerminal (NonTerminal _) = False
 
-nodeChar :: Node -> Char
-nodeChar node =
-    case node of
-        Terminal char _ -> char
-        NonTerminal char _ -> char
+nodeChildren :: Node -> NodeMap
+nodeChildren (Terminal xs) = xs
+nodeChildren (NonTerminal xs) = xs
 
-nodeChildren :: Node -> [Node]
-nodeChildren node =
-    case node of
-        Terminal _ xs -> xs
-        NonTerminal _ xs -> xs
-
-nodeConstructor :: [Node] -> (Char -> [Node] -> Node)
-nodeConstructor nodes =
-    case nodes of
-        [] -> NonTerminal
-        xs ->
-            if any isTerminal xs
-                then Terminal
-                else NonTerminal
-
-recursiveMergeNodes :: [Node] -> [Node]
-recursiveMergeNodes nodes =
-    map (\(c, xs) ->
-             let constructor = nodeConstructor xs
-              in constructor c $ recursiveMergeNodes $ concatMap nodeChildren xs)
-        charAndNodes
-  where
-    charAndNodes = groupBy nodeChar nodes
-
-addNode :: Trie -> Node -> Trie
-addNode (Root nodes) node = Root $ nodes ++ [node]
+addNode :: Trie -> Char -> Node -> Trie
+addNode (Root nodes) char node =
+    Root $ Map.insertWith mergeSameNodes char node nodes
 
 buildTrie :: Trie
-buildTrie = Root []
+buildTrie = Root Map.empty
 
 add :: String -> Trie -> Trie
-add value trie =
-    case value of
-        "" -> trie
-        (x:xs) -> addNode trie $ createNode x xs
+add "" trie = trie
+add (x:xs) trie = addNode trie x $ createNode xs
 
-createNode :: Char -> String -> Node
-createNode char rest =
+createNode :: String -> Node
+createNode rest =
     case rest of
-        [] -> Terminal char []
-        (x:xs) -> NonTerminal char [createNode x xs]
+        [] -> Terminal Map.empty
+        (x:xs) -> NonTerminal $ Map.singleton x $ createNode xs
