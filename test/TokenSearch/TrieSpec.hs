@@ -18,6 +18,11 @@ spec =
             Map.lookup "foobar" outcome `shouldBe` Just 1
             Map.lookup "Bar" outcome `shouldBe` Just 1
             Map.lookup "non-token" outcome `shouldBe` Nothing
+        it "supports insertion of shorter words later" $ do
+            let trie = buildTrieWithTokens ["foobar", "foo"]
+            let outcome = processText trie "foobar"
+            Map.lookup "foo" outcome `shouldBe` Just 1
+            Map.lookup "foobar" outcome `shouldBe` Just 1
         it "allows for aggregating results" $ do
             let trie = buildTrieWithTokens ["foo", "foobar", "Bar"]
             let outcome = processText trie "foobarfooBarbar"
