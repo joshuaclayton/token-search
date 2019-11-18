@@ -15,11 +15,11 @@ import WalkTrie
 
 main :: IO ()
 main = do
-    tokens <- tokensFromTags <$> readProcess "cat" [".git/tags"] []
-    let newTrie = buildTrieWithTokens tokens
-    filenames <- lines <$> readProcess "git" ["ls-files"] []
+    tokens <- calculateTokens
+    filenames <- calculateFileNames
     print $ length tokens
     print $ length filenames
+    let newTrie = buildTrieWithTokens tokens
     allResults <-
         mapM
             (\filename -> processWithContext newTrie <$!> readFileBS filename)
@@ -29,6 +29,12 @@ main = do
     firstFromTriple (a, _, _) = a
     prepareForMap (_, b, c) = (b, c)
     go (token, xs) = (token, Map.fromList $ map prepareForMap xs)
+
+calculateTokens :: IO [String]
+calculateTokens = tokensFromTags <$> readProcess "cat" [".git/tags"] []
+
+calculateFileNames :: IO [String]
+calculateFileNames = lines <$> readProcess "git" ["ls-files"] []
 
 readFileBS :: String -> IO (String, String)
 readFileBS filename =
