@@ -21,20 +21,26 @@ description:         Please see the README on GitHub at <https://github.com/gith
 
 dependencies:
 - base >= 4.7 && < 5
+- containers
 
 library:
   source-dirs: src
 
 executables:
-  token-search-exe:
+  token-search:
     main:                Main.hs
     source-dirs:         app
+    default-extensions:  OverloadedStrings
     ghc-options:
     - -threaded
     - -rtsopts
     - -with-rtsopts=-N
     dependencies:
     - token-search
+    - text
+    - process
+    - bytestring
+    - containers
 
 tests:
   token-search-test:
@@ -46,3 +52,4 @@ tests:
     - -with-rtsopts=-N
     dependencies:
     - token-search
+    - hspec
