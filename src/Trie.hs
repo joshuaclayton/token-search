@@ -13,12 +13,12 @@ type NodeMap = Map.Map Char Node
 
 newtype Trie =
     Root NodeMap
-    deriving (Show)
+    deriving (Show, Eq)
 
 data Node
     = Terminal !NodeMap
     | NonTerminal !NodeMap
-    deriving (Show)
+    deriving (Show, Eq)
 
 buildTrieWithTokens :: [String] -> Trie
 buildTrieWithTokens = foldl (flip add) buildTrie
