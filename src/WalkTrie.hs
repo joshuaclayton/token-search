@@ -24,16 +24,18 @@ processText trie = snd . foldl f ([], Map.empty)
         case findNodeFromTrie trie char of
             Nothing -> []
             Just _ -> [Unwalked trie]
-    f (state, map') char =
-        let (newState, words') = advanceStates char stateAndNewTrie
-            stateAndNewTrie = newTrie char ++ state
-            newMap m word = Map.insertWith (+) word 1 m
-         in (newState, foldl newMap map' words')
+    f (state, map') char = advanceStates char map' $ newTrie char ++ state
 
-advanceStates :: Char -> [WalkedNode] -> ([WalkedNode], [String])
-advanceStates char =
-    (id &&& concatMap walkedTerminalResult) .
+advanceStates ::
+       Char
+    -> Map.Map String Int
+    -> [WalkedNode]
+    -> ([WalkedNode], Map.Map String Int)
+advanceStates char map' =
+    (id &&& foldl newMap map' . concatMap walkedTerminalResult) .
     filter activeNode . map (walk char)
+  where
+    newMap m word = Map.insertWith (+) word 1 m
 
 walk :: Char -> WalkedNode -> WalkedNode
 walk _ Ended = Ended
