@@ -17,11 +17,13 @@ extra-source-files:
 # To avoid duplicated efforts in documentation and dealing with the
 # complications of embedding Haddock markup inside cabal files, it is
 # common to point users to the README.md file.
-description:         Please see the README on GitHub at <https://github.com/githubuser/token-search#readme>
+description:         Please see the README on GitHub at <https://github.com/joshuaclayton/token-search#readme>
 
 dependencies:
 - base >= 4.7 && < 5
 - containers
+- process >= 1.6 && < 2
+- bytestring > 0.10.8 && < 1
 
 library:
   source-dirs: src
@@ -39,8 +41,6 @@ executables:
     - token-search
     - text
     - process
-    - bytestring
-    - containers
 
 tests:
   token-search-test:
