@@ -1,60 +1,22 @@
-{-# LANGUAGE TupleSections #-}
-
 module Main where
 
-import Control.Monad ((<$!>))
-import qualified Data.ByteString.Lazy as C
-import Data.Char (chr)
+import Control.Monad.IO.Class (MonadIO, liftIO)
 import qualified Data.List as L
-import qualified Data.Map.Strict as Map
 import qualified Data.Text as T
 import System.Process (readProcess)
-import Trie
-import WalkTrie
+import qualified TokenSearch
 
-main :: IO ()
+main :: MonadIO m => m ()
 main = do
     tokens <- calculateTokens
-    filenames <- calculateFileNames
-    print $ length tokens
-    print $ length filenames
-    let newTrie = buildTrieWithTokens tokens
-    allResults <-
-        Map.unions <$>
-        mapM
-            (\filename ->
-                 processTextWithFilename newTrie <$!> readFileBS filename)
-            filenames
-    print $ transformMap allResults
+    filenames <- TokenSearch.calculateFileNames
+    liftIO $ print $ length tokens
+    liftIO $ print $ length filenames
+    results <- TokenSearch.calculateResults tokens filenames
+    liftIO $ print results
 
-calculateTokens :: IO [String]
-calculateTokens = tokensFromTags <$> readProcess "cat" [".git/tags"] []
-
-calculateFileNames :: IO [String]
-calculateFileNames = lines <$> readProcess "git" ["ls-files"] []
-
-readFileBS :: String -> IO (String, String)
-readFileBS filename =
-    (, filename) . map (chr . fromEnum) . C.unpack <$> C.readFile filename
-
-processTextWithFilename ::
-       Trie -> (String, String) -> Map.Map String (Map.Map String Int)
-processTextWithFilename trie (input, filename) =
-    Map.singleton filename $ processText trie input
-
-transformMap ::
-       (Ord a, Ord b) => Map.Map a (Map.Map b Int) -> Map.Map b (Map.Map a Int)
-transformMap = Map.foldlWithKey f Map.empty
-  where
-    f tokenToFilenamesAcc filename =
-        Map.foldlWithKey
-            (\acc token count ->
-                 Map.insertWith
-                     Map.union
-                     token
-                     (Map.singleton filename count)
-                     acc)
-            tokenToFilenamesAcc
+calculateTokens :: MonadIO m => m [String]
+calculateTokens = tokensFromTags <$> liftIO (readProcess "cat" [".git/tags"] [])
 
 tokensFromTags :: String -> [String]
 tokensFromTags = L.nub . tokenLocations
