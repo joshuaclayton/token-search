@@ -1,17 +1,12 @@
-{-# LANGUAGE TupleSections #-}
-
 module TokenSearch
     ( calculateResults
     , calculateFileNames
     ) where
 
-import Control.Monad ((<$!>))
+import Conduit
 import Control.Monad.IO.Class (MonadIO, liftIO)
-import qualified Data.ByteString as BS
 import qualified Data.Map.Strict as Map
 import qualified Data.Text as T
-import qualified Data.Text.Encoding as T
-import qualified Data.Text.Encoding.Error as T
 import System.Process (readProcess)
 import Trie
 import WalkTrie
@@ -23,26 +18,39 @@ calculateResults ::
        MonadIO m
     => [String]
     -> [FilePath]
-    -> m (Map.Map String (Map.Map String Int))
+    -> m (Map.Map String (Map.Map FilePath Int))
 calculateResults tokens filenames = do
     let newTrie = buildTrieWithTokens tokens
-    transformMap . Map.unions <$>
-        mapM
-            (\filename ->
-                 processTextWithFilename newTrie <$!> readFileBS filename)
-            filenames
+    transformMap . Map.unions <$> processAllFiles filenames newTrie
 
-readFileBS :: MonadIO m => FilePath -> m (FilePath, T.Text)
-readFileBS filename =
-    (filename, ) . lenientUtf8Decode <$> liftIO (BS.readFile filename)
+processAllFiles ::
+       MonadIO m
+    => [FilePath]
+    -> Trie
+    -> m [Map.Map FilePath (Map.Map String Int)]
+processAllFiles filenames trie =
+    liftIO $
+    runConduitRes $
+    pathAndContentsSource filenames .| processTextC trie .| sinkList
+
+pathAndContentsSource ::
+       MonadResource m => [FilePath] -> ConduitT () (FilePath, T.Text) m ()
+pathAndContentsSource filenames =
+    getZipSource $
+    (,) <$> ZipSource (yieldMany filenames) <*>
+    ZipSource
+        (yieldMany filenames .| awaitForever sourceFileBS .| decodeUtf8LenientC)
+
+processTextC ::
+       Monad m
+    => Trie
+    -> ConduitT (FilePath, T.Text) (Map.Map String (Map.Map String Int)) m ()
+processTextC trie = Conduit.mapC (processTextWithFilename trie)
 
 processTextWithFilename ::
        Trie -> (FilePath, T.Text) -> Map.Map FilePath (Map.Map String Int)
 processTextWithFilename trie (filename, input) =
     Map.singleton filename $ processText trie input
-
-lenientUtf8Decode :: BS.ByteString -> T.Text
-lenientUtf8Decode = T.decodeUtf8With T.lenientDecode
 
 transformMap ::
        (Ord a, Ord b) => Map.Map a (Map.Map b Int) -> Map.Map b (Map.Map a Int)
