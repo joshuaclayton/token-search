@@ -7,9 +7,11 @@ module TokenSearch
 
 import Control.Monad ((<$!>))
 import Control.Monad.IO.Class (MonadIO, liftIO)
-import qualified Data.ByteString.Lazy as C
-import Data.Char (chr)
+import qualified Data.ByteString as BS
 import qualified Data.Map.Strict as Map
+import qualified Data.Text as T
+import qualified Data.Text.Encoding as T
+import qualified Data.Text.Encoding.Error as T
 import System.Process (readProcess)
 import Trie
 import WalkTrie
@@ -30,15 +32,17 @@ calculateResults tokens filenames = do
                  processTextWithFilename newTrie <$!> readFileBS filename)
             filenames
 
-readFileBS :: MonadIO m => String -> m (String, String)
+readFileBS :: MonadIO m => FilePath -> m (FilePath, T.Text)
 readFileBS filename =
-    (, filename) . map (chr . fromEnum) . C.unpack <$>
-    liftIO (C.readFile filename)
+    (filename, ) . lenientUtf8Decode <$> liftIO (BS.readFile filename)
 
 processTextWithFilename ::
-       Trie -> (String, String) -> Map.Map String (Map.Map String Int)
-processTextWithFilename trie (input, filename) =
+       Trie -> (FilePath, T.Text) -> Map.Map FilePath (Map.Map String Int)
+processTextWithFilename trie (filename, input) =
     Map.singleton filename $ processText trie input
+
+lenientUtf8Decode :: BS.ByteString -> T.Text
+lenientUtf8Decode = T.decodeUtf8With T.lenientDecode
 
 transformMap ::
        (Ord a, Ord b) => Map.Map a (Map.Map b Int) -> Map.Map b (Map.Map a Int)

@@ -5,6 +5,7 @@ module WalkTrie
 
 import Control.Arrow ((&&&))
 import qualified Data.Map as Map
+import qualified Data.Text as T
 import Trie
 
 data WalkedNode
@@ -17,8 +18,8 @@ data WalkedNode
 aggregateResults :: [Map.Map String Int] -> Map.Map String Int
 aggregateResults = foldl1 (Map.unionWith (+))
 
-processText :: Trie -> String -> Map.Map String Int
-processText trie = snd . foldl f ([], Map.empty)
+processText :: Trie -> T.Text -> Map.Map String Int
+processText trie = snd . T.foldl f ([], Map.empty)
   where
     newTrie char =
         case findNodeFromTrie trie char of
