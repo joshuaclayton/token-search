@@ -4,9 +4,15 @@ module TokenSearch
     ) where
 
 import Conduit
+import Control.Monad (unless)
 import Control.Monad.IO.Class (MonadIO, liftIO)
+import qualified Data.Bifunctor as BF
+import qualified Data.ByteString as BS
 import qualified Data.Map.Strict as Map
+import qualified Data.Streaming.FileRead as FR
 import qualified Data.Text as T
+import qualified Data.Text.Encoding as T
+import qualified Data.Text.Encoding.Error as T
 import System.Process (readProcess)
 import Trie
 import WalkTrie
@@ -36,10 +42,21 @@ processAllFiles filenames trie =
 pathAndContentsSource ::
        MonadResource m => [FilePath] -> ConduitT () (FilePath, T.Text) m ()
 pathAndContentsSource filenames =
-    getZipSource $
-    (,) <$> ZipSource (yieldMany filenames) <*>
-    ZipSource
-        (yieldMany filenames .| awaitForever sourceFileBS .| decodeUtf8LenientC)
+    yieldMany filenames .| awaitForever sourceFileWithFilename .|
+    mapC (BF.second lenientUtf8Decode)
+
+lenientUtf8Decode :: BS.ByteString -> T.Text
+lenientUtf8Decode = T.decodeUtf8With T.lenientDecode
+
+sourceFileWithFilename ::
+       MonadResource m => FilePath -> ConduitT i (FilePath, BS.ByteString) m ()
+sourceFileWithFilename fp = bracketP (FR.openFile fp) FR.closeFile loop
+  where
+    loop h = do
+        bs <- liftIO $ FR.readChunk h
+        unless (BS.null bs) $ do
+            yield (fp, bs)
+            loop h
 
 processTextC ::
        Monad m
