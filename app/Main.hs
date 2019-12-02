@@ -1,6 +1,8 @@
 module Main where
 
 import Control.Monad.IO.Class (MonadIO, liftIO)
+import qualified Data.Aeson as A
+import qualified Data.ByteString.Lazy as BS
 import qualified Data.List as L
 import qualified Data.Text as T
 import System.Process (readProcess)
@@ -13,7 +15,7 @@ main = do
     liftIO $ print $ length tokens
     liftIO $ print $ length filenames
     results <- TokenSearch.calculateResults tokens filenames
-    liftIO $ print results
+    liftIO $ BS.putStr $ A.encode results
 
 calculateTokens :: MonadIO m => m [String]
 calculateTokens = tokensFromTags <$> liftIO (readProcess "cat" [".git/tags"] [])
