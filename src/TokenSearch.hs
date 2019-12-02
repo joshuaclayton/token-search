@@ -4,7 +4,6 @@ module TokenSearch
     ) where
 
 import Conduit
-import Control.Monad (unless)
 import Control.Monad.IO.Class (MonadIO, liftIO)
 import qualified Data.Bifunctor as BF
 import qualified Data.ByteString as BS
@@ -50,13 +49,14 @@ lenientUtf8Decode = T.decodeUtf8With T.lenientDecode
 
 sourceFileWithFilename ::
        MonadResource m => FilePath -> ConduitT i (FilePath, BS.ByteString) m ()
-sourceFileWithFilename fp = bracketP (FR.openFile fp) FR.closeFile loop
+sourceFileWithFilename fp =
+    bracketP (FR.openFile fp) FR.closeFile (loop BS.empty)
   where
-    loop h = do
+    loop acc h = do
         bs <- liftIO $ FR.readChunk h
-        unless (BS.null bs) $ do
-            yield (fp, bs)
-            loop h
+        if BS.null bs
+            then yield (fp, acc)
+            else loop (BS.append acc bs) h
 
 processTextC ::
        Monad m
