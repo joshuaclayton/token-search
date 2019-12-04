@@ -62,7 +62,7 @@ processTextC ::
        Monad m
     => Trie
     -> ConduitT (FilePath, T.Text) (Map.Map String (Map.Map String Int)) m ()
-processTextC trie = Conduit.mapC (processTextWithFilename trie)
+processTextC trie = mapC (processTextWithFilename trie)
 
 processTextWithFilename ::
        Trie -> (FilePath, T.Text) -> Map.Map FilePath (Map.Map String Int)
