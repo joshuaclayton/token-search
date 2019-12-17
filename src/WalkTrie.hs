@@ -1,5 +1,7 @@
 module WalkTrie
     ( processText
+    , trieToWalkedNode
+    , processTextWithState
     , aggregateResults
     ) where
 
@@ -18,8 +20,15 @@ data WalkedNode
 aggregateResults :: [Map.Map String Int] -> Map.Map String Int
 aggregateResults = foldl1 (Map.unionWith (+))
 
+trieToWalkedNode :: Trie -> WalkedNode
+trieToWalkedNode = Unwalked
+
 processText :: Trie -> T.Text -> Map.Map String Int
-processText trie = snd . T.foldl f ([], Map.empty)
+processText trie = snd . processTextWithState [] trie
+
+processTextWithState ::
+       [WalkedNode] -> Trie -> T.Text -> ([WalkedNode], Map.Map String Int)
+processTextWithState nodes trie = T.foldl f (nodes, Map.empty)
   where
     newTrie char =
         case findNodeFromTrie trie char of
