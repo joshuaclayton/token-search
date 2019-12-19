@@ -11,10 +11,8 @@ import qualified TokenSearch
 main :: MonadIO m => m ()
 main = do
     tokens <- calculateTokens
-    filenames <- TokenSearch.calculateFileNames
-    liftIO $ print $ length tokens
-    liftIO $ print $ length filenames
-    results <- TokenSearch.calculateResults tokens filenames
+    results <-
+        TokenSearch.calculateResults tokens =<< TokenSearch.calculateFileNames
     liftIO $ BS.putStr $ A.encode results
 
 calculateTokens :: MonadIO m => m [String]
