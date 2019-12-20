@@ -21,7 +21,7 @@ calculateFileNames = lines <$> liftIO (readProcess "git" ["ls-files"] [])
 
 calculateResults ::
        MonadIO m
-    => [String]
+    => [T.Text]
     -> [FilePath]
     -> m (Map.Map String (Map.Map FilePath Int))
 calculateResults tokens filenames = do

@@ -8,6 +8,7 @@ module Trie
     ) where
 
 import qualified Data.Map as Map
+import qualified Data.Text as T
 
 type NodeMap = Map.Map Char Node
 
@@ -20,7 +21,7 @@ data Node
     | NonTerminal !NodeMap
     deriving (Show, Eq)
 
-buildTrieWithTokens :: [String] -> Trie
+buildTrieWithTokens :: [T.Text] -> Trie
 buildTrieWithTokens = foldl (flip add) buildTrie
 
 findNodeFromTrie :: Trie -> Char -> Maybe Node
@@ -52,12 +53,14 @@ addNode (Root nodes) char node =
 buildTrie :: Trie
 buildTrie = Root Map.empty
 
-add :: String -> Trie -> Trie
-add "" trie = trie
-add (x:xs) trie = addNode trie x $ createNode xs
+add :: T.Text -> Trie -> Trie
+add input trie =
+    case T.uncons input of
+        Nothing -> trie
+        Just (x, xs) -> addNode trie x $ createNode xs
 
-createNode :: String -> Node
-createNode rest =
-    case rest of
-        [] -> Terminal Map.empty
-        (x:xs) -> NonTerminal $ Map.singleton x $ createNode xs
+createNode :: T.Text -> Node
+createNode input =
+    case T.uncons input of
+        Nothing -> Terminal Map.empty
+        Just (x, xs) -> NonTerminal $ Map.singleton x $ createNode xs

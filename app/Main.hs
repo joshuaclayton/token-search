@@ -15,11 +15,11 @@ main = do
         TokenSearch.calculateResults tokens =<< TokenSearch.calculateFileNames
     liftIO $ BS.putStr $ A.encode results
 
-calculateTokens :: MonadIO m => m [String]
-calculateTokens = tokensFromTags <$> liftIO (readProcess "cat" [".git/tags"] [])
+calculateTokens :: MonadIO m => m [T.Text]
+calculateTokens =
+    tokensFromTags . T.pack <$> liftIO (readProcess "cat" [".git/tags"] [])
 
-tokensFromTags :: String -> [String]
+tokensFromTags :: T.Text -> [T.Text]
 tokensFromTags = L.nub . tokenLocations
   where
-    tokenLocations = map (token . T.splitOn "\t" . T.pack) . lines
-    token = T.unpack . head
+    tokenLocations = map (head . T.splitOn "\t") . T.lines
