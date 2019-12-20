@@ -24,9 +24,11 @@ data Node
 buildTrieWithTokens :: [T.Text] -> Trie
 buildTrieWithTokens = foldl (flip add) buildTrie
 
+{-# INLINE findNodeFromTrie #-}
 findNodeFromTrie :: Trie -> Char -> Maybe Node
 findNodeFromTrie (Root nodes) char = Map.lookup char nodes
 
+{-# INLINE findNodeFromChildren #-}
 findNodeFromChildren :: Node -> Char -> Maybe Node
 findNodeFromChildren node char = Map.lookup char $ nodeChildren node
 
@@ -42,6 +44,7 @@ isTerminal :: Node -> Bool
 isTerminal (Terminal _) = True
 isTerminal (NonTerminal _) = False
 
+{-# INLINE nodeChildren #-}
 nodeChildren :: Node -> NodeMap
 nodeChildren (Terminal xs) = xs
 nodeChildren (NonTerminal xs) = xs

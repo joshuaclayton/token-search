@@ -38,6 +38,7 @@ advanceStates char map' =
   where
     newMap m word = Map.insertWith (+) word 1 m
 
+{-# INLINE walk #-}
 walk :: Char -> WalkedNode -> Maybe WalkedNode
 walk char (Unwalked trie) =
     case findNodeFromTrie trie char of
