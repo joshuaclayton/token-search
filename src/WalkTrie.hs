@@ -5,6 +5,7 @@ module WalkTrie
 
 import Control.Arrow ((&&&))
 import qualified Data.Map as Map
+import qualified Data.Maybe as M
 import qualified Data.Text as T
 import Trie
 
@@ -12,7 +13,6 @@ data WalkedNode
     = Unwalked Trie
     | Walked String
              Node
-    | Ended
     deriving (Show)
 
 aggregateResults :: [Map.Map String Int] -> Map.Map String Int
@@ -34,25 +34,20 @@ advanceStates ::
     -> ([WalkedNode], Map.Map String Int)
 advanceStates char map' =
     (id &&& foldl newMap map' . concatMap walkedTerminalResult) .
-    filter activeNode . map (walk char)
+    M.mapMaybe (walk char)
   where
     newMap m word = Map.insertWith (+) word 1 m
 
-walk :: Char -> WalkedNode -> WalkedNode
-walk _ Ended = Ended
+walk :: Char -> WalkedNode -> Maybe WalkedNode
 walk char (Unwalked trie) =
     case findNodeFromTrie trie char of
-        Nothing -> Ended
-        Just node' -> Walked [char] node'
+        Nothing -> Nothing
+        Just node' -> Just $ Walked [char] node'
 walk char (Walked string node) =
     case findNodeFromChildren node char of
-        Nothing -> Ended
-        Just node' -> Walked (string ++ [char]) node'
+        Nothing -> Nothing
+        Just node' -> Just $ Walked (string ++ [char]) node'
 
 walkedTerminalResult :: WalkedNode -> [String]
 walkedTerminalResult (Walked base node) = [base | isTerminal node]
 walkedTerminalResult _ = []
-
-activeNode :: WalkedNode -> Bool
-activeNode Ended = False
-activeNode _ = True
