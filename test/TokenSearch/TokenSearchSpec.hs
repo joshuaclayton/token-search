@@ -1,6 +1,7 @@
 module TokenSearch.TokenSearchSpec where
 
-import qualified Data.Map as Map
+import qualified Data.HashMap.Strict as Map
+import qualified Data.List as L
 import Test.Hspec
 import TokenSearch
 
@@ -19,7 +20,7 @@ spec =
                 , "test/data/person_spec.rb"
                 ]
         results <- calculateResults tokens paths
-        Map.toList <$>
+        L.sort . Map.toList <$>
             Map.lookup "Person" results `shouldBe`
             Just
                 [ ("test/data/long_file.rb", 3)

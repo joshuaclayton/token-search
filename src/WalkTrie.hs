@@ -4,7 +4,7 @@ module WalkTrie
     ) where
 
 import Control.Arrow ((&&&))
-import qualified Data.Map as Map
+import qualified Data.HashMap.Strict as Map
 import qualified Data.Maybe as M
 import qualified Data.Text as T
 import Trie
@@ -15,10 +15,10 @@ data WalkedNode
              Node
     deriving (Show)
 
-aggregateResults :: [Map.Map String Int] -> Map.Map String Int
+aggregateResults :: [Map.HashMap String Int] -> Map.HashMap String Int
 aggregateResults = foldl1 (Map.unionWith (+))
 
-processText :: Trie -> T.Text -> Map.Map String Int
+processText :: Trie -> T.Text -> Map.HashMap String Int
 processText trie = snd . T.foldl f ([], Map.empty)
   where
     newTrie char =
@@ -29,9 +29,9 @@ processText trie = snd . T.foldl f ([], Map.empty)
 
 advanceStates ::
        Char
-    -> Map.Map String Int
+    -> Map.HashMap String Int
     -> [WalkedNode]
-    -> ([WalkedNode], Map.Map String Int)
+    -> ([WalkedNode], Map.HashMap String Int)
 advanceStates char map' =
     (id &&& foldl newMap map' . concatMap walkedTerminalResult) .
     M.mapMaybe (walk char)

@@ -1,6 +1,6 @@
 module TokenSearch.TrieSpec where
 
-import qualified Data.Map as Map
+import qualified Data.HashMap.Strict as Map
 import Test.Hspec
 import Trie
 import WalkTrie

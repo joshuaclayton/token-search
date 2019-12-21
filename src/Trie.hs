@@ -7,10 +7,10 @@ module Trie
     , Node
     ) where
 
-import qualified Data.Map as Map
+import qualified Data.HashMap.Strict as Map
 import qualified Data.Text as T
 
-type NodeMap = Map.Map Char Node
+type NodeMap = Map.HashMap Char Node
 
 newtype Trie =
     Root NodeMap
