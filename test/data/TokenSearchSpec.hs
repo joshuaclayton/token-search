@@ -1,9 +1,9 @@
-module TokenSearch.TokenSearchSpec where
+module Data.TokenSearchSpec where
 
 import qualified Data.HashMap.Strict as Map
 import qualified Data.List as L
+import Data.TokenSearch
 import Test.Hspec
-import TokenSearch
 
 main :: IO ()
 main = hspec spec

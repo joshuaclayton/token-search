@@ -1,4 +1,4 @@
-module Trie
+module Data.TokenSearch.Trie
     ( buildTrieWithTokens
     , isTerminal
     , findNodeFromTrie

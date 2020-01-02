@@ -1,4 +1,4 @@
-module TokenSearch
+module Data.TokenSearch
     ( calculateResults
     , calculateFileNames
     ) where
@@ -13,9 +13,9 @@ import qualified Data.Streaming.FileRead as FR
 import qualified Data.Text as T
 import qualified Data.Text.Encoding as T
 import qualified Data.Text.Encoding.Error as T
+import Data.TokenSearch.Trie
+import Data.TokenSearch.WalkTrie
 import System.Process (readProcess)
-import Trie
-import WalkTrie
 
 calculateFileNames :: MonadIO m => m [String]
 calculateFileNames = lines <$> liftIO (readProcess "git" ["ls-files"] [])

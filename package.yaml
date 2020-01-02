@@ -31,6 +31,8 @@ dependencies:
 
 library:
   source-dirs: src
+  exposed-modules:
+  - Data.TokenSearch
 
 executables:
   token-search:
@@ -50,7 +52,9 @@ executables:
 tests:
   token-search-test:
     main:                Spec.hs
-    source-dirs:         test
+    source-dirs:
+    - test
+    - src
     default-extensions:  OverloadedStrings
     ghc-options:
     - -threaded

@@ -5,8 +5,8 @@ import qualified Data.Aeson as A
 import qualified Data.ByteString.Lazy as BS
 import qualified Data.List as L
 import qualified Data.Text as T
+import qualified Data.TokenSearch as TokenSearch
 import System.Process (readProcess)
-import qualified TokenSearch
 
 main :: MonadIO m => m ()
 main = do

@@ -1,4 +1,4 @@
-module WalkTrie
+module Data.TokenSearch.WalkTrie
     ( processText
     , aggregateResults
     ) where
@@ -7,7 +7,7 @@ import Control.Arrow ((&&&))
 import qualified Data.HashMap.Strict as Map
 import qualified Data.Maybe as M
 import qualified Data.Text as T
-import Trie
+import Data.TokenSearch.Trie
 
 data WalkedNode
     = Unwalked Trie

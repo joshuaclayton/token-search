@@ -1,9 +1,9 @@
-module TokenSearch.TrieSpec where
+module Data.TokenSearch.TrieSpec where
 
 import qualified Data.HashMap.Strict as Map
+import Data.TokenSearch.Trie
+import Data.TokenSearch.WalkTrie
 import Test.Hspec
-import Trie
-import WalkTrie
 
 main :: IO ()
 main = hspec spec
