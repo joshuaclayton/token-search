@@ -5,20 +5,23 @@ module Data.TokenSearch.WalkTrie
 
 import Control.Arrow ((&&&))
 import qualified Data.HashMap.Strict as Map
+import Data.Hashable (Hashable)
 import qualified Data.Maybe as M
 import qualified Data.Text as T
 import Data.TokenSearch.Trie
+import Numeric.Natural (Natural)
 
 data WalkedNode
-    = Unwalked Trie
-    | Walked String
-             Node
+    = Unwalked !Trie
+    | Walked T.Text
+             !Node
     deriving (Show)
 
-aggregateResults :: [Map.HashMap String Int] -> Map.HashMap String Int
+aggregateResults ::
+       (Eq a, Hashable a, Num b) => [Map.HashMap a b] -> Map.HashMap a b
 aggregateResults = foldl1 (Map.unionWith (+))
 
-processText :: Trie -> T.Text -> Map.HashMap String Int
+processText :: Trie -> T.Text -> Map.HashMap T.Text Natural
 processText trie = snd . T.foldl f ([], Map.empty)
   where
     newTrie char =
@@ -29,9 +32,9 @@ processText trie = snd . T.foldl f ([], Map.empty)
 
 advanceStates ::
        Char
-    -> Map.HashMap String Int
+    -> Map.HashMap T.Text Natural
     -> [WalkedNode]
-    -> ([WalkedNode], Map.HashMap String Int)
+    -> ([WalkedNode], Map.HashMap T.Text Natural)
 advanceStates char map' =
     (id &&& foldl newMap map' . concatMap walkedTerminalResult) .
     M.mapMaybe (walk char)
@@ -42,12 +45,12 @@ walk :: Char -> WalkedNode -> Maybe WalkedNode
 walk char (Unwalked trie) =
     case findNodeFromTrie trie char of
         Nothing -> Nothing
-        Just node' -> Just $ Walked [char] node'
-walk char (Walked string node) =
+        Just node' -> Just $ Walked (T.singleton char) node'
+walk char (Walked text node) =
     case findNodeFromChildren node char of
         Nothing -> Nothing
-        Just node' -> Just $ Walked (string ++ [char]) node'
+        Just node' -> Just $ Walked (T.snoc text char) node'
 
-walkedTerminalResult :: WalkedNode -> [String]
+walkedTerminalResult :: WalkedNode -> [T.Text]
 walkedTerminalResult (Walked base node) = [base | isTerminal node]
 walkedTerminalResult _ = []

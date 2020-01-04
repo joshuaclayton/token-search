@@ -15,6 +15,7 @@ import qualified Data.Text.Encoding as T
 import qualified Data.Text.Encoding.Error as T
 import Data.TokenSearch.Trie
 import Data.TokenSearch.WalkTrie
+import Numeric.Natural (Natural)
 import System.Process (readProcess)
 
 calculateFileNames :: MonadIO m => m [String]
@@ -24,7 +25,7 @@ calculateResults ::
        MonadIO m
     => [T.Text]
     -> [FilePath]
-    -> m (Map.HashMap String (Map.HashMap FilePath Int))
+    -> m (Map.HashMap T.Text (Map.HashMap FilePath Natural))
 calculateResults tokens filenames = do
     let newTrie = buildTrieWithTokens tokens
     transformMap . Map.unions <$> processAllFiles filenames newTrie
@@ -33,7 +34,7 @@ processAllFiles ::
        MonadIO m
     => [FilePath]
     -> Trie
-    -> m [Map.HashMap FilePath (Map.HashMap String Int)]
+    -> m [Map.HashMap FilePath (Map.HashMap T.Text Natural)]
 processAllFiles filenames trie =
     liftIO $
     runConduitRes $
@@ -62,20 +63,20 @@ sourceFileWithFilename fp =
 processTextC ::
        Monad m
     => Trie
-    -> ConduitT (FilePath, T.Text) (Map.HashMap String (Map.HashMap String Int)) m ()
+    -> ConduitT (FilePath, T.Text) (Map.HashMap FilePath (Map.HashMap T.Text Natural)) m ()
 processTextC trie = mapC (processTextWithFilename trie)
 
 processTextWithFilename ::
        Trie
     -> (FilePath, T.Text)
-    -> Map.HashMap FilePath (Map.HashMap String Int)
+    -> Map.HashMap FilePath (Map.HashMap T.Text Natural)
 processTextWithFilename trie (filename, input) =
     Map.singleton filename $ processText trie input
 
 transformMap ::
        (Hashable a, Hashable b, Eq a, Eq b)
-    => Map.HashMap a (Map.HashMap b Int)
-    -> Map.HashMap b (Map.HashMap a Int)
+    => Map.HashMap a (Map.HashMap b c)
+    -> Map.HashMap b (Map.HashMap a c)
 transformMap = Map.foldlWithKey' f Map.empty
   where
     f tokenToFilenamesAcc filename =
