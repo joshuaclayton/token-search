@@ -28,6 +28,7 @@ dependencies:
 - streaming-commons
 - unordered-containers
 - hashable
+- pureMD5
 
 library:
   source-dirs: src

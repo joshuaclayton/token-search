@@ -1,5 +1,6 @@
 module Data.TokenSearchSpec where
 
+import qualified Data.Bifunctor as BF
 import qualified Data.HashMap.Strict as Map
 import qualified Data.List as L
 import Data.TokenSearch
@@ -20,13 +21,13 @@ spec =
                 , "test/data/person_spec.rb"
                 ]
         results <- calculateResults tokens paths
-        L.sort . Map.toList <$>
+        L.sort . fmap (BF.first filePath) . Map.toList <$>
             Map.lookup "Person" results `shouldBe`
             Just
                 [ ("test/data/long_file.rb", 3)
                 , ("test/data/person.rb", 1)
                 , ("test/data/person_spec.rb", 3)
                 ]
-        Map.toList <$>
+        fmap (BF.first filePath) . Map.toList <$>
             Map.lookup "Place" results `shouldBe`
             Just [("test/data/place.rb", 1)]
