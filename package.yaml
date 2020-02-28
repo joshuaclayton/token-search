@@ -48,6 +48,7 @@ executables:
     - text
     - process
     - aeson >= 1.4.5 && < 2
+    - optparse-applicative
 
 tests:
   token-search-test:
